@@ -84,7 +84,7 @@ public class BankServiceTest {
         try {
             bankService.updateBalance(accountInfo, -2700);
         } catch (RuntimeException e) {
-            assertEquals("Not Enough Balance to Withdraw", e.getMessage());
+            assertEquals("Insufficient Balance", e.getMessage());
         }
 
         assertTrue(bankService.updateBalance(accountInfo, 500));

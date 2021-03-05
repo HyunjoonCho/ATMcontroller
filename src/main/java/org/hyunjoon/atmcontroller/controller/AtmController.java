@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping("/atmController")
@@ -32,10 +33,16 @@ public class AtmController {
     @RequestMapping("/validatePIN")
     public void validatePIN(@RequestParam("pin") String pin) {
         logger.info("Validating PIN...");
-        token = bankService.getTokenForPin(pin);
+        try {
+            token = bankService.getTokenForPin(pin);
+            logger.info("Valid PIN");
+        } catch (RuntimeException e) {
+            logger.warn(e.getMessage());
+        }
     }
 
-    @RequestMapping("/getAccountList")
+    @RequestMapping("/accountList")
+    @ResponseBody
     public List<AccountInfo> getAccountList(@RequestParam("pin") String pin) {        
         logger.info("Getting Account List...");
 
@@ -51,6 +58,7 @@ public class AtmController {
     }
 
     @RequestMapping("/balance")
+    @ResponseBody
     public int seeBalance(@RequestParam("index") int index) {
         logger.info("Getting Balance for Account {}...", index + 1);
 
@@ -111,8 +119,10 @@ public class AtmController {
 
     @RequestMapping("/endSession")
     public void endSession() {
-        token = null;
-        // remove token from bank service
+        if (token != null) {
+            bankService.removeToken(token);
+            token = null;
+        }
         accountList = null;
         logger.info("Session Ended");
     }

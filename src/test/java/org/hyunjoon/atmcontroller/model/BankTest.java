@@ -38,7 +38,7 @@ public class BankTest {
         try {
             bank.updateAccountBalance(0, -1000);
         } catch (RuntimeException e) {
-            assertEquals("Not Enough Balance to Withdraw", e.getMessage());
+            assertEquals("Insufficient Balance", e.getMessage());
         }
         assertEquals(0, bank.getAccountBalance(0));
 

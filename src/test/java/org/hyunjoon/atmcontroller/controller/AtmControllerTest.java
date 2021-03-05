@@ -13,13 +13,16 @@ import org.hyunjoon.atmcontroller.model.CashBin;
 import org.hyunjoon.atmcontroller.model.CustomerInfo;
 import org.hyunjoon.atmcontroller.service.BankService;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AtmControllerTest {
-
-    static String PIN = "0123456789";
+    private static String PIN = "0123456789";
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Test
     public void testPinValidation() {
+        logger.info("** Start PIN Validation Test **");
         AtmController atmController = createAtmController();
         
         try {
@@ -34,6 +37,7 @@ public class AtmControllerTest {
 
     @Test
     public void testGetAccountList() {
+        logger.info("** Start Get Account List Test **");
         AtmController atmController = createAtmController();
         atmController.validatePIN(PIN);
         assertEquals(3, atmController.getAccountList(PIN).size());
@@ -42,6 +46,7 @@ public class AtmControllerTest {
 
     @Test
     public void testSeeBalance() {
+        logger.info("** Start See Balance Test **");
         AtmController atmController = createAtmController();
         atmController.validatePIN(PIN);
         atmController.getAccountList(PIN);
@@ -51,6 +56,7 @@ public class AtmControllerTest {
 
     @Test
     public void testDeposit() {
+        logger.info("** Start Deposit Test **");
         AtmController atmController = createAtmController();
         atmController.validatePIN(PIN);
         atmController.getAccountList(PIN);
@@ -62,19 +68,51 @@ public class AtmControllerTest {
 
     @Test
     public void testWithdraw() {
+        logger.info("** Start Withdraw Test **");
         AtmController atmController = createAtmController();
         atmController.validatePIN(PIN);
         atmController.getAccountList(PIN);
         atmController.seeBalance(1);
-        atmController.withdraw(1, 4000);
+
+        try {
+            atmController.withdraw(1, 4000);
+        } catch (RuntimeException e){
+            assertEquals("Not Enough Cash in Bin", e.getMessage());
+        }
+
         assertEquals(3000, atmController.seeBalance(1));
-        atmController.withdraw(1, 3200);
+
+        try {
+            atmController.withdraw(1, 3200);
+        } catch (RuntimeException e) {
+            assertEquals("Insufficient Balance", e.getMessage());
+        }
         assertEquals(3000, atmController.seeBalance(1));
         atmController.withdraw(1, 1500);
         assertEquals(1500, atmController.seeBalance(1));
         atmController.endSession();
     }
 
+    @Test
+    public void testIsValidException() {
+        logger.info("** Start isValid Exception Test **");
+        AtmController atmController = createAtmController();
+        try {
+            atmController.seeBalance(0);
+        } catch (RuntimeException e) {
+            assertEquals("No Account List", e.getMessage());
+        }
+
+        atmController.validatePIN(PIN);
+        atmController.getAccountList(PIN);
+
+        try {
+            atmController.seeBalance(-1);
+        } catch (RuntimeException e) {
+            assertEquals("No Such Account 0", e.getMessage());
+        }
+        atmController.endSession();
+    }
 
     private AtmController createAtmController() {
         Map<String, CustomerInfo> pinToCustomer = new HashMap<>();
