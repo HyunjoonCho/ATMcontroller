@@ -38,24 +38,47 @@ public class AtmController {
     @RequestMapping("/getAccountList")
     public List<AccountInfo> getAccountList(@RequestParam("pin") String pin) {        
         logger.info("Getting Account List...");
+
+        if (token == null) {
+            logger.warn("No Token Issued");
+            return null;
+        }
+
         accountList = bankService.getAccountList(token, pin);
+        logger.info("Your Accounts: {}", accountList);
 
         return accountList;
     }
 
     @RequestMapping("/balance")
     public int seeBalance(@RequestParam("index") int index) {
-        logger.info("Getting Balance...");
+        logger.info("Getting Balance for Account {}...", index + 1);
 
-        return bankService.getBalance(accountList.get(index));
+        try {
+            isValid(index);
+            int balance = bankService.getBalance(accountList.get(index));
+            logger.info("Your Balance: {}", balance);
+            return balance;
+        } catch (RuntimeException e) {
+            logger.warn(e.getMessage());
+            return -1;
+        }
+
     }
 
     @RequestMapping("/deposit")
     public void deposit(
             @RequestParam("index") int index,
             @RequestParam("amount") int amount) {
-        if (bankService.updateBalance(accountList.get(index), amount)) {
+        logger.info("Depositting to Account {}...", index + 1);
+
+        try {
+            isValid(index);
+            bankService.updateBalance(accountList.get(index), amount); 
             cashBin.deposit(amount);
+            logger.info("Deposit Succeeded");
+        } catch (RuntimeException e) {
+            logger.warn(e.getMessage());
         }
     }
 
@@ -63,14 +86,34 @@ public class AtmController {
     public void withdraw(            
             @RequestParam("index") int index,
             @RequestParam("amount") int amount) {
-        if (bankService.updateBalance(accountList.get(index), amount)) {
+        logger.info("Withdrawing from Account {}...", index + 1);
+
+        try {
+            isValid(index);
+            cashBin.isEnough(amount); 
+            bankService.updateBalance(accountList.get(index), amount * -1);
             cashBin.withdraw(amount);
+            logger.info("Withdraw Succeeded");
+        } catch (RuntimeException e) {
+            logger.warn(e.getMessage());
+        }
+    }
+
+    private void isValid(int index) {
+        if (accountList == null) {
+            throw new RuntimeException("No Account List");
+        }
+
+        if (index < 0 || index >= accountList.size()) {
+            throw new RuntimeException("No Such Account " + (index + 1));
         }
     }
 
     @RequestMapping("/endSession")
     public void endSession() {
         token = null;
+        // remove token from bank service
         accountList = null;
+        logger.info("Session Ended");
     }
 }

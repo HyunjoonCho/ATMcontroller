@@ -1,5 +1,7 @@
 package org.hyunjoon.atmcontroller.model;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -10,6 +12,11 @@ import org.springframework.stereotype.Repository;
 public class Bank {
     private final Map<String, CustomerInfo> pinToCustomer;
     private final List<Integer> accountBalanceList;
+
+    public Bank() {
+        pinToCustomer = new HashMap<>();
+        accountBalanceList = new ArrayList<>();
+    }
 
     public Bank(Map<String, CustomerInfo> pinToCustomer, List<Integer> accountBalanceList) {
         this.pinToCustomer = Objects.requireNonNull(pinToCustomer, "pinToCustomer");
@@ -36,7 +43,7 @@ public class Bank {
     public boolean updateAccountBalance(int accountId, int updateAmount) {
         int updatedBalance = accountBalanceList.get(accountId) + updateAmount;
         if (updatedBalance < 0) {
-            return false;
+            throw new RuntimeException("Not Enough Balance to Withdraw");
         } else {
             accountBalanceList.set(accountId, updatedBalance);
             return true;

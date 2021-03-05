@@ -1,7 +1,9 @@
 package org.hyunjoon.atmcontroller;
 
-import org.springframework.boot.SpringApplication;
+import org.springframework.boot.Banner;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
@@ -9,7 +11,11 @@ import org.springframework.context.annotation.ComponentScan;
 public class AtmControllerApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AtmControllerApplication.class, args);
+		SpringApplicationBuilder builder = new SpringApplicationBuilder(AtmControllerApplication.class);
+		builder.web(WebApplicationType.SERVLET);
+		builder.bannerMode(Banner.Mode.OFF);
+
+		builder.build().run(args);
 	}
 
 }
